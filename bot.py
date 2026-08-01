@@ -89,7 +89,7 @@ def process_article(title: str, mode: str, username: str, report: list[str]) -> 
     page = wiki.get_page(title)
     if page is None:
         record["status"] = "missing"
-        log(f"  SKIP (page missing)")
+        log("  SKIP (page missing)")
         return record
     old = page["text"]
 
@@ -168,7 +168,10 @@ def process_article(title: str, mode: str, username: str, report: list[str]) -> 
             print("STRUCTURAL WARNINGS:", *violations, sep="\n  - ")
         if not verdict["ok"]:
             print("VERIFIER SAYS NOT OK:", *verdict["issues"], sep="\n  - ")
-        answer = input(f"Save this edit to [[{title}]]? [y/N] ").strip().lower()
+        try:
+            answer = input(f"Save this edit to [[{title}]]? [y/N] ").strip().lower()
+        except EOFError:
+            answer = "n"
         if answer != "y":
             record["status"] = "declined"
             log("  not saved")
@@ -285,7 +288,10 @@ def main() -> None:
     p_diff.set_defaults(func=cmd_difflist)
 
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except KeyboardInterrupt:
+        sys.exit("\nInterrupted — no partial edit was saved.")
 
 
 if __name__ == "__main__":

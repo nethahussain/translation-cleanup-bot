@@ -5,6 +5,7 @@ visible in this one file (easy to audit in a bot-approval review).
 """
 
 import re
+import time
 
 import requests
 
@@ -22,23 +23,53 @@ _logged_in = False
 
 
 def _get(params: dict, api: str = config.WIKI_API) -> dict:
+    """GET with retries: network errors and maxlag are retried with backoff."""
     params = {**params, "format": "json", "formatversion": "2"}
-    resp = session.get(api, params=params, timeout=60)
-    resp.raise_for_status()
-    data = resp.json()
-    if "error" in data:
-        raise WikiError(str(data["error"]))
-    return data
+    last_error: WikiError | None = None
+    for attempt in range(4):
+        try:
+            resp = session.get(api, params=params, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            last_error = WikiError(f"request failed: {exc}")
+            time.sleep(2 ** attempt)
+            continue
+        if "error" in data:
+            if data["error"].get("code") == "maxlag":
+                time.sleep(int(resp.headers.get("Retry-After", "5")))
+                last_error = WikiError(str(data["error"]))
+                continue
+            raise WikiError(str(data["error"]))
+        return data
+    raise last_error or WikiError("request failed")
 
 
 def _post(params: dict, api: str = config.WIKI_API) -> dict:
+    """POST with maxlag retry only.
+
+    Network errors are NOT retried here: a timed-out action=edit may have
+    actually succeeded server-side, and blindly retrying could save the same
+    edit twice. A maxlag rejection, by contrast, means the write was refused
+    before happening, so retrying is safe.
+    """
     params = {**params, "format": "json", "formatversion": "2"}
-    resp = session.post(api, data=params, timeout=60)
-    resp.raise_for_status()
-    data = resp.json()
-    if "error" in data:
-        raise WikiError(str(data["error"]))
-    return data
+    last_error: WikiError | None = None
+    for attempt in range(4):
+        try:
+            resp = session.post(api, data=params, timeout=60)
+            resp.raise_for_status()
+            data = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            raise WikiError(f"request failed: {exc}")
+        if "error" in data:
+            if data["error"].get("code") == "maxlag":
+                time.sleep(int(resp.headers.get("Retry-After", "5")))
+                last_error = WikiError(str(data["error"]))
+                continue
+            raise WikiError(str(data["error"]))
+        return data
+    raise last_error or WikiError("request failed")
 
 
 # --- Auth ---------------------------------------------------------------
@@ -170,7 +201,10 @@ def save(
         raise WikiError(f"edit failed: {data}")
     if "nochange" in edit:
         raise WikiError("edit saved with no change (identical text?)")
-    return edit["newrevid"]
+    newrevid = edit.get("newrevid")
+    if not newrevid:
+        raise WikiError(f"edit reported Success but no newrevid: {edit}")
+    return newrevid
 
 
 # --- Article discovery --------------------------------------------------

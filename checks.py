@@ -36,7 +36,7 @@ def _features(text: str) -> dict:
         "templates": templates,
         "<ref> tags": Counter({"<ref>": len(re.findall(r"<ref[\s>/]", text))}),
         "external URLs": Counter(re.findall(r"https?://[^\s\]<>|]+", text)),
-        "numbers": Counter(re.findall(r"[0-9]+", text)),
+        "numbers": Counter(re.findall(r"[0-9൦-൯]+", text)),
     }
 
 

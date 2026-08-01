@@ -47,14 +47,19 @@ def _complete_api(system: str, user: str) -> str:
     # Streaming keeps long outputs from hitting HTTP timeouts.
     # claude-fable-5: thinking is always on — the `thinking` param is omitted
     # on purpose (an explicit value is rejected by the API).
-    with _api_client.messages.stream(
-        model=config.API_MODEL,
-        max_tokens=config.MAX_OUTPUT_TOKENS,
-        system=system,
-        output_config={"effort": config.EFFORT},
-        messages=[{"role": "user", "content": user}],
-    ) as stream:
-        message = stream.get_final_message()
+    try:
+        with _api_client.messages.stream(
+            model=config.API_MODEL,
+            max_tokens=config.MAX_OUTPUT_TOKENS,
+            system=system,
+            output_config={"effort": config.EFFORT},
+            messages=[{"role": "user", "content": user}],
+        ) as stream:
+            message = stream.get_final_message()
+    except anthropic.RateLimitError as exc:
+        raise LLMError(f"rate limited by the Anthropic API — wait and retry: {exc}")
+    except (anthropic.APIError, anthropic.APIConnectionError) as exc:
+        raise LLMError(f"Anthropic API error: {exc}")
 
     if message.stop_reason == "refusal":
         raise Refusal("model declined the request (stop_reason=refusal)")
