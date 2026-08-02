@@ -92,6 +92,16 @@ Everything the bot proposes lands in `output/`:
 - `output/report.md` — per-run report incl. warnings and issues flagged for humans
 - `output/edits.jsonl` — machine-readable log of saved edits
 
+## Data
+
+[data/cx_full_list.xlsx](data/cx_full_list.xlsx) — the complete worklist:
+all 12,136 live Malayalam articles created with the Content Translation tool
+(as of 2026-08-02), with machine/human translation percentages per article,
+sorted by machine-translation ratio, pilot-corrected articles marked ✔.
+A second sheet lists 610 excluded titles (deleted or user-space). The on-wiki
+version lives at
+[ഉപയോക്താവ്:Netha Hussain/പരിഭാഷ ശുദ്ധീകരണം/മുഴുവൻ പട്ടിക](https://ml.wikipedia.org/wiki/ഉപയോക്താവ്:Netha_Hussain/പരിഭാഷ_ശുദ്ധീകരണം/മുഴുവൻ_പട്ടിക).
+
 ## Safety model
 
 | Risk | Defence |
