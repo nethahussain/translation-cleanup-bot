@@ -46,9 +46,10 @@ EDIT_SUMMARY = (
 )
 
 # --- LLM engine ---------------------------------------------------------
-# "api" = Anthropic API key (ANTHROPIC_API_KEY)
 # "cli" = your Claude subscription, via the logged-in Claude Code CLI
-ENGINE = os.environ.get("ENGINE", "api")
+#         (default — no API key needed)
+# "api" = Anthropic API key (ANTHROPIC_API_KEY)
+ENGINE = os.environ.get("ENGINE", "cli")
 
 API_MODEL = os.environ.get("API_MODEL", "claude-fable-5")
 CLI_MODEL = os.environ.get("CLI_MODEL", "fable")

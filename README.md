@@ -43,17 +43,30 @@ cp .env.example .env
 
 ### Claude access — choose ONE
 
-**Option A — Anthropic API key** (pay per use):
+**Option A — your Claude subscription, no API key** (default; Pro/Max, via
+Claude Code):
+
+1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
+2. Run `claude` once and log in with your claude.ai account.
+3. In `.env`: `ENGINE=cli` — that's all. There is **no API key to create or
+   buy**: the bot runs the model through the logged-in Claude Code CLI in
+   headless mode (`claude -p`), authenticated by your subscription.
+   Subscription usage limits apply; the model alias is set with `CLI_MODEL`
+   (default `fable`).
+
+**Option B — Anthropic API key** (pay per use):
 
 1. Create a key at <https://console.anthropic.com/> → API keys.
 2. In `.env`: `ENGINE=api` and `ANTHROPIC_API_KEY=sk-ant-…`
 
-**Option B — your Claude subscription** (Pro/Max, via Claude Code):
-
-1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
-2. Run `claude` once and log in with your claude.ai account.
-3. In `.env`: `ENGINE=cli` (no API key needed). Subscription usage limits
-   apply; the model alias is set with `CLI_MODEL` (default `fable`).
+**Which one?** For supervised runs of a handful of articles at a time, the
+subscription route (A) does the job at no extra cost — an article takes a few
+minutes because each call carries the Claude Code session overhead and runs
+sequentially against your interactive usage limits. The API route (B) is for
+scale: calls skip that overhead, articles can be processed concurrently, and
+asynchronous batches qualify for the Batch API discount. Both routes use the
+same pinned model, so edit quality and the on-wiki model disclosure are
+identical.
 
 ### Wiki credentials (only needed to SAVE edits)
 
