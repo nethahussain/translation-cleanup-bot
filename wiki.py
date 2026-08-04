@@ -10,6 +10,7 @@ import time
 import requests
 
 import config
+import throttle
 
 
 class WikiError(Exception):
@@ -18,6 +19,13 @@ class WikiError(Exception):
 
 session = requests.Session()
 session.headers["User-Agent"] = config.USER_AGENT
+
+# ml.wikipedia rate-limits API clients hard: anonymously about a 10-request
+# burst followed by a ~25s cooldown. The throttle spaces requests across all
+# threads and honours Retry-After on 429/503. It is installed here, before
+# anything (including login) can make a request — a 429 on the login call
+# would otherwise drop the bot back to slow anonymous access.
+throttle.install(session, min_interval=config.REQUEST_INTERVAL)
 
 _logged_in = False
 
@@ -93,6 +101,8 @@ def login() -> str:
     if data.get("login", {}).get("result") != "Success":
         raise WikiError(f"login failed: {data.get('login')}")
     _logged_in = True
+    # authenticated clients get a far higher limit than anonymous ones
+    throttle.set_interval(config.REQUEST_INTERVAL_LOGGED_IN)
     return data["login"]["lgusername"]
 
 

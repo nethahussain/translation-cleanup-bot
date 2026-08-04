@@ -105,6 +105,76 @@ Everything the bot proposes lands in `output/`:
 - `output/report.md` — per-run report incl. warnings and issues flagged for humans
 - `output/edits.jsonl` — machine-readable log of saved edits
 
+## Running a large batch
+
+`bot.py` is serial and cannot resume, which is fine for a handful of articles
+and unworkable for hundreds. Use `batchrun.py` for a real batch — every phase
+is independently resumable, so an interruption costs nothing.
+
+```bash
+# 1. Build the list: take the next N rows of data/cx_full_list.xlsx that are
+#    not in an earlier batch, one title per line.
+
+# 2. Cache the articles and their English sources (the slow part — see
+#    "Rate limits" below). Resumable: re-run to pick up where it stopped.
+python batchrun.py fetch   --work batches/batch4 --list batch4.tsv
+
+# 3. Model passes. Reads only the cache, so it makes no wiki requests and can
+#    run while fetch is still going (--follow waits for newly cached articles).
+python batchrun.py process --work batches/batch4 --list batch4.tsv \
+                           --workers 20 --follow
+
+# 4. Save the clean, verified proposals (<=4 edits/min).
+python batchrun.py save    --work batches/batch4
+
+# 5. Generate and publish the on-wiki results pages.
+python wikilog.py --config batches/batch4.json
+python publish.py --config batches/batch4.json --dry-run
+python publish.py --config batches/batch4.json
+
+python batchrun.py status  --work batches/batch4     # any time
+```
+
+Copy `batches/batch3.json` to start a new batch; it is the config for batch 3
+exactly as it ran. **Batch 4 starts at ക്രമസംഖ്യ 698** of the worklist.
+
+The save pass re-checks each article's revision id before writing and skips
+anything edited in the meantime, so a batch left running overnight can never
+silently revert another editor.
+
+## Things that will bite you
+
+**Rate limits.** ml.wikipedia limits anonymous API clients to roughly a
+10-request burst followed by a ~25s cooldown — about 1 request per 5.5s. Logged
+in it is over ten times faster (measured: 2.8/min anonymous vs 36.8/min
+authenticated). `throttle.py` spaces requests across threads and honours
+`Retry-After`; it is installed on the shared session in `wiki.py` *before*
+anything can make a request, because the login call is itself rate-limited and
+a 429 there silently drops you back to anonymous speed.
+
+**Which model you pick changes the results, not just the quality.** Batch 2 on
+Fable 5 saved 76%; batch 3 on Opus 5 saved 45%. Opus writes better Malayalam
+but crosses the language-only line far more often — it spots a factual error
+against the English source and fixes it, which is correct but outside the
+project's mandate, so the verifier refuses it. A lower save rate here means the
+guardrails are working, not that the run failed.
+
+**Whatever model runs must match the on-wiki disclosure.** The project page
+states which model made which batch's edits. If you change `CLI_MODEL`, update
+the disclosure — that is the whole reason there is no automatic fallback to a
+different model.
+
+**Quoted wikitext in log pages is live wikitext.** The results tables quote
+fragments of articles, and a quoted `[[വർഗ്ഗം:X]]` silently files the *log
+page* into that category, while a quoted `<ref name="X" />` raises a cite
+error. Nothing looks wrong on the page itself. `wikilog.esc()` neutralises
+category, file and interlanguage links, ref tags and template syntax; keep
+using it for any model-written text that reaches a page.
+
+**Redirects.** A redirect has no prose, so the model returns "language already
+fine" and the redirect gets counted as a reviewed article. Both `bot.py` and
+`batchrun.py` detect and skip them (batch 3: 107 of 500 were redirects).
+
 ## Data
 
 [data/cx_full_list.xlsx](data/cx_full_list.xlsx) — the complete worklist:

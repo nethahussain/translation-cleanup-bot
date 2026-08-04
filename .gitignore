@@ -4,3 +4,9 @@ articles.txt
 __pycache__/
 *.pyc
 .DS_Store
+
+# Per-batch working data: caches, proposals, diffs and result logs.
+# These are large and reproducible; the batch *config* is tracked, the
+# working data is not.
+batches/*/
+!batches/*.json

@@ -63,6 +63,12 @@ EN_SOURCE_MAX_CHARS = 30_000  # truncate the English source used as reference
 LENGTH_RATIO_MIN = 0.6       # reject edit if new/old length falls outside
 LENGTH_RATIO_MAX = 1.4       # this window
 
+# API request spacing (see throttle.py). Anonymous access is limited to
+# roughly a 10-request burst then a ~25s cooldown; logging in raises it a lot.
+REQUEST_INTERVAL = float(os.environ.get("REQUEST_INTERVAL", "2.0"))
+REQUEST_INTERVAL_LOGGED_IN = float(
+    os.environ.get("REQUEST_INTERVAL_LOGGED_IN", "0.4"))
+
 SLEEP_BETWEEN_EDITS = 15     # seconds between saved edits (max 4/min)
 SLEEP_BETWEEN_LLM_CALLS = 2  # small pause between model calls
 

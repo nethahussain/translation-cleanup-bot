@@ -103,6 +103,14 @@ def process_article(title: str, mode: str, username: str, report: list[str]) -> 
         log(f"  SKIP ({{{{nobots}}}} exclusion on page)")
         return record
 
+    if re.match(r"^\s*#\s*(REDIRECT|തിരിച്ചുവിടുക)", old, re.IGNORECASE):
+        # A redirect has no prose to copy-edit. Without this the model returns
+        # the no-changes marker and the redirect is logged as a reviewed
+        # article, overstating how many articles were actually checked.
+        record["status"] = "redirect"
+        log("  SKIP (redirect)")
+        return record
+
     en_source = wiki.get_en_source(title)
 
     # Pass 1 — cleanup
