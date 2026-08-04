@@ -67,6 +67,34 @@ THEMES = [
 ]
 
 
+# The model writes its own Malayalam for the log tables and reaches for
+# "മനുഷ്യപരിശോധന വേണം" / "ഒരു മനുഷ്യ എഡിറ്റർ" — calques of "needs human
+# review". On ml.wikipedia the word for the people who do that is
+# ഉപയോക്താക്കൾ, so normalise before the text reaches a page. Longest
+# patterns first. Ordinary uses of മനുഷ്യ inside quoted article content
+# (മനുഷ്യ അണ്ഡങ്ങൾ, മനുഷ്യ വിഭവശേഷി) are deliberately left alone.
+WORDING = [
+    ("മനുഷ്യപരിശോധന ആവശ്യമുള്ള", "ഉപയോക്താക്കൾ പരിശോധിക്കേണ്ട"),
+    ("മനുഷ്യപരിശോധന ആവശ്യമാണ്", "ഉപയോക്താക്കൾ പരിശോധിക്കണം"),
+    ("മനുഷ്യപരിശോധന ആവശ്യം", "ഉപയോക്താക്കൾ പരിശോധിക്കണം"),
+    ("മനുഷ്യപരിശോധന വേണം", "ഉപയോക്താക്കൾ പരിശോധിക്കണം"),
+    ("മനുഷ്യപരിശോധനയ്ക്കായി", "ഉപയോക്താക്കൾക്കായി"),
+    ("മനുഷ്യപരിശോധന", "ഉപയോക്താക്കളുടെ പരിശോധന"),
+    ("ഒരു മനുഷ്യ എഡിറ്റർ", "ഒരു ഉപയോക്താവ്"),
+    ("മനുഷ്യ എഡിറ്റർമാർക്ക്", "ഉപയോക്താക്കൾക്ക്"),
+    ("മനുഷ്യ എഡിറ്റർമാർ", "ഉപയോക്താക്കൾ"),
+    ("മനുഷ്യതിരുത്തൽ ആവശ്യം", "ഉപയോക്താക്കൾ തിരുത്തണം"),
+    ("മനുഷ്യതിരുത്തൽ", "ഉപയോക്താക്കളുടെ തിരുത്തൽ"),
+    ("മനുഷ്യശ്രദ്ധയ്ക്കായി", "ഉപയോക്താക്കൾക്കായി"),
+]
+
+
+def normalise(text):
+    for old, new in WORDING:
+        text = text.replace(old, new)
+    return text
+
+
 def load_jsonl(path):
     if not path.exists():
         return []
@@ -90,6 +118,7 @@ def esc(text):
     """
     if not text:
         return ""
+    text = normalise(text)
     text = (text.replace("|", "&#124;")
                 .replace("\n", " ")
                 .replace("<", "&lt;")
