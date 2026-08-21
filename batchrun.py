@@ -356,6 +356,11 @@ def cmd_save(args):
             if page is None:
                 append_jsonl(work.saved, {**r, "status": "missing-at-save"})
                 continue
+            account = config.WIKI_USERNAME.split("@", 1)[0]
+            if not wiki.bots_allowed(page["text"], account):
+                append_jsonl(work.saved, {**r, "status": "nobots-at-save"})
+                log(f"[{i}/{len(todo)}] SKIP ({{{{nobots}}}}) {title}")
+                continue
             if page["revid"] != r["revid"]:
                 # Someone edited the article after the proposal was generated.
                 # Saving now would silently revert them, so skip instead.

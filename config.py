@@ -39,10 +39,12 @@ USER_AGENT = (
 WIKI_USERNAME = os.environ.get("WIKI_USERNAME", "")
 WIKI_PASSWORD = os.environ.get("WIKI_PASSWORD", "")
 
-PROJECT_PAGE = "ഉപയോക്താവ്:Netha Hussain/പരിഭാഷ ശുദ്ധീകരണം"
+PROJECT_PAGE = "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം"
+# The bot-approval request commits to disclosing AI use in every edit
+# summary; keep that disclosure in whatever this is changed to.
 EDIT_SUMMARY = (
-    "പരിഭാഷാ ശുദ്ധീകരണ പദ്ധതി — AI-സഹായത്തോടെ ഭാഷ മെച്ചപ്പെടുത്തൽ; "
-    "വിശദാംശങ്ങൾ: [[" + PROJECT_PAGE + "]]"
+    "പരിഭാഷാ ശുദ്ധീകരണം — നിർമ്മിതബുദ്ധി (AI) സഹായത്തോടെ ഭാഷാതിരുത്തൽ "
+    "(പരീക്ഷണ ഓട്ടം); വിശദാംശങ്ങൾ: [[" + PROJECT_PAGE + "]]"
 )
 
 # --- LLM engine ---------------------------------------------------------

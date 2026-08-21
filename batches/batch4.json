@@ -1,0 +1,21 @@
+{
+  "_comment": "Batch 4 — first AksharaBot test run (പരീക്ഷണ ഓട്ടം), authorized by Kiran Gopi 2026-08-20 on വിക്കിപീഡിയ:യന്ത്രം/അംഗീകാരത്തിനുള്ള അപേക്ഷകൾ/പുതിയ അപേക്ഷകൾ#AksharaBot. Edits saved by AksharaBot, no bot flag. Batch 5 starts at ക്രമസംഖ്യ 798.",
+
+  "name": "നാലാം ബാച്ച്",
+  "base": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം",
+  "page": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം/നാലാം ബാച്ച്",
+  "work": "batches/batch4",
+
+  "count": 100,
+  "range": "698–797",
+  "mt_range": "96.2%–96.6%",
+  "model": "Claude Fable 5",
+  "date_ml": "2026 ഓഗസ്റ്റ്",
+
+  "rows_per_part": 250,
+  "facts_per_part": 300,
+
+  "stage_label": "2d. നാലാം ബാച്ച് (AksharaBot പരീക്ഷണ ഓട്ടം)",
+  "stage_anchor": "| 3. സമൂഹപരിശോധന ||",
+  "subpage_anchor": "* [[/ആദ്യ 200 ലേഖനങ്ങൾ|ആദ്യ 200 ലേഖനങ്ങളുടെ പട്ടിക]]"
+}

@@ -10,3 +10,4 @@ __pycache__/
 # working data is not.
 batches/*/
 !batches/*.json
+.venv/
