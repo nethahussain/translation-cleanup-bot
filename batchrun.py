@@ -45,6 +45,10 @@ _lock = threading.Lock()
 
 # Statuses worth retrying on a later run; anything else is final.
 RETRYABLE = {"error", "not-cached"}
+# Stop retrying an article after this many attempts. Batch 4 had four
+# articles that made the model spin until the CLI died, 132 retries each —
+# without a cap, follow mode never terminates and every retry burns tokens.
+MAX_ATTEMPTS = 5
 # Pause before a follow-mode retry sweep. Without it, an outage that fails
 # every call instantly turns the retry into a spin that floods results.jsonl.
 RETRY_PAUSE = 60
@@ -303,8 +307,13 @@ def cmd_process(args):
         + (", follow mode" if args.follow else ""))
 
     while True:
-        settled = {t for t, r in latest_by_title(load_jsonl(work.results)).items()
-                   if r.get("status") not in RETRYABLE}
+        all_recs = load_jsonl(work.results)
+        attempts = {}
+        for r in all_recs:
+            attempts[r["title"]] = attempts.get(r["title"], 0) + 1
+        settled = {t for t, r in latest_by_title(all_recs).items()
+                   if r.get("status") not in RETRYABLE
+                   or attempts.get(t, 0) >= MAX_ATTEMPTS}
         todo = [t for t in titles
                 if t not in settled
                 and (work.cache / f"{safe_name(t)}.json").exists()]
