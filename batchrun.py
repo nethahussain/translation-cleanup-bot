@@ -252,6 +252,8 @@ def process_one(title, work):
                    len=len(old), en_title=cached.get("en_title"))
         en_source = cached.get("en_source")
 
+        rec["model"] = (config.CLI_MODEL if config.ENGINE == "cli"
+                        else config.API_MODEL)
         raw = llm.complete(prompts.CLEANUP_SYSTEM,
                            prompts.cleanup_user(title, old, en_source))
         if prompts.NO_CHANGES_MARKER in raw:

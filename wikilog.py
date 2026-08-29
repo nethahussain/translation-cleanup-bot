@@ -96,6 +96,23 @@ def normalise(text):
     return text
 
 
+# A batch can span two models when one hits a usage limit mid-run. The
+# project discloses which model made each edit, so the results table carries
+# a per-article model column rather than one batch-wide claim.
+MODEL_ML = {
+    "fable": "Fable 5",
+    "opus": "Opus 5",
+    "sonnet": "Sonnet 4.5",
+    "claude-fable-5": "Fable 5",
+    "claude-opus-5": "Opus 5",
+}
+
+
+def model_label(rec):
+    m = rec.get("model")
+    return MODEL_ML.get(m, m) if m else "—"
+
+
 def load_jsonl(path):
     if not path.exists():
         return []
@@ -193,6 +210,17 @@ def build(cfg):
         for issue in (r.get("summary") or {}).get("fact_issues_ml", []):
             fact_rows.append((title, esc(issue)))
 
+    # Which models actually produced edits in this batch. cfg["model"] is
+    # only a default: a batch that spans a usage limit uses more than one,
+    # and the page must say so rather than claim a single model.
+    model_counts = collections.Counter(
+        model_label(r) for r in order
+        if r.get("status") in ("proposed", "proposed-blocked", "no-changes"))
+    if model_counts:
+        models_ml = ", ".join(f"Claude {m}" for m in sorted(model_counts))
+    else:
+        models_ml = cfg["model"]
+
     S = blocking_stats(order)
     n_total = len(order)
     n_saved = counts.get("saved", 0)
@@ -265,12 +293,13 @@ def build(cfg):
         f"ഉൾപ്പെടാത്ത അടുത്ത {cfg['count']} ലേഖനങ്ങളാണ് ഇത്തവണ എടുത്തത് "
         f"([[{base}/മുഴുവൻ പട്ടിക|മുഴുവൻ പട്ടികയിലെ]] ക്രമസംഖ്യ {cfg['range']}; "
         f"യന്ത്രപരിഭാഷ {cfg['mt_range']}). ഇവയിൽ {B}ഭാഷയും പരിഭാഷാപ്പിശകുകളും "
-        f"മാത്രമാണ്{B} നിർമ്മിതബുദ്ധിയുടെ ({cfg['model']}) സഹായത്തോടെ "
+        f"മാത്രമാണ്{B} നിർമ്മിതബുദ്ധിയുടെ ({models_ml}) സഹായത്തോടെ "
         "മെച്ചപ്പെടുത്തിയത്; വസ്തുതകൾ, സംഖ്യകൾ, അവലംബങ്ങൾ, ഫലകങ്ങൾ, കണ്ണികൾ, "
         "വർഗ്ഗങ്ങൾ എന്നിവ തൊട്ടിട്ടില്ല. ഇംഗ്ലീഷ് മൂലലേഖനം ലഭ്യമായിടത്തെല്ലാം "
         "അതുമായി ഒത്തുനോക്കിയാണ് തിരുത്തിയത്. ഓരോ തിരുത്തും രണ്ടു പരിശോധനകൾ — "
         "കോഡ് നടത്തുന്ന ഘടനാപരിശോധനയും സ്വതന്ത്രമായ AI-പരിശോധനയും — "
-        f"കടന്നശേഷമാണ് സേവ് ചെയ്തിട്ടുള്ളത്. (തയ്യാറാക്കിയത്: {cfg['date_ml']}.)",
+        f"കടന്നശേഷമാണ് സേവ് ചെയ്തിട്ടുള്ളത്. (തയ്യാറാക്കിയത്: {cfg['date_ml']}.)"
+        + ((" " + cfg["runner_note_ml"]) if cfg.get("runner_note_ml") else ""),
         "",
         "== സംഗ്രഹം ==",
         "",
@@ -337,6 +366,18 @@ def build(cfg):
         "",
         *fact_index,
         "",
+        *(["== ഉപയോഗിച്ച നിർമ്മിതബുദ്ധി മോഡലുകൾ ==", ""]
+          + ["ഈ ബാച്ചിലെ ഭാഷാതിരുത്തലുകൾ ഒന്നിലധികം ക്ലോഡ് മോഡലുകൾ "
+             "ഉപയോഗിച്ചാണ് തയ്യാറാക്കിയത്:"]
+          + [""]
+          + [f"* {B}Claude {m}{B} — {n} ലേഖനങ്ങൾ"
+             for m, n in sorted(model_counts.items())]
+          + ["",
+             "ഉപയോഗിച്ച മോഡൽ ഏതായാലും തിരുത്തലിന്റെ നിയമങ്ങളും പരിശോധനാ "
+             "ഘട്ടങ്ങളും ഒന്നുതന്നെയാണ്: ഭാഷ മാത്രം, ഘടനാപരിശോധനയും "
+             "സ്വതന്ത്ര AI-പരിശോധനയും കടന്നാൽ മാത്രം സേവ്.",
+             ""]
+          if len(model_counts) > 1 else []),
         "== ഇതും കാണുക ==",
         "",
         f"* [[{base}|പദ്ധതിരേഖ]]",
