@@ -1,0 +1,18 @@
+{
+  "_comment": "Batch 5 — first approved AksharaBot run at scale, Fable 5, bot flag. Approved by Kiran Gopi (bot flag granted 2026-08-22). Batch 6 starts at ക്രമസംഖ്യ 1198 unless this batch stopped early on usage limits.",
+  "name": "അഞ്ചാം ബാച്ച്",
+  "base": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം",
+  "page": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം/അഞ്ചാം ബാച്ച്",
+  "work": "batches/batch5",
+  "count": 400,
+  "range": "798–1197",
+  "mt_range": "94.8%–96.2%",
+  "model": "Claude Fable 5",
+  "date_ml": "2026 ഓഗസ്റ്റ്",
+  "rows_per_part": 250,
+  "facts_per_part": 300,
+  "stage_label": "2e. അഞ്ചാം ബാച്ച് (AksharaBot)",
+  "stage_anchor": "| 3. സമൂഹപരിശോധന ||",
+  "subpage_anchor": "* [[/ആദ്യ 200 ലേഖനങ്ങൾ|ആദ്യ 200 ലേഖനങ്ങളുടെ പട്ടിക]]",
+  "runner_note_ml": "ഈ ബാച്ചിലെ തിരുത്തുകൾ [[ഉപയോക്താവ്:AksharaBot|AksharaBot]] എന്ന യന്ത്ര അക്കൗണ്ടിൽനിന്നാണ് സേവ് ചെയ്തത് — [[വിക്കിപീഡിയ:യന്ത്രം/അംഗീകാരത്തിനുള്ള അപേക്ഷകൾ/പുതിയ അപേക്ഷകൾ#AksharaBot|യന്ത്ര അംഗീകാരം]] ലഭിച്ചശേഷം, ബോട്ട് ഫ്ലാഗോടെ."
+}

@@ -40,6 +40,10 @@ WIKI_USERNAME = os.environ.get("WIKI_USERNAME", "")
 WIKI_PASSWORD = os.environ.get("WIKI_PASSWORD", "")
 
 PROJECT_PAGE = "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം"
+# The bot-approval request commits to disclosing AI use in every edit
+# summary; keep that disclosure in whatever this is changed to.
+# "(പരീക്ഷണ ഓട്ടം)" was dropped once AksharaBot was approved and the trial
+# run (batch 6) was done — later batches are ordinary approved runs.
 EDIT_SUMMARY = (
     "പരിഭാഷാ ശുദ്ധീകരണം — നിർമ്മിതബുദ്ധി (AI) സഹായത്തോടെ ഭാഷാതിരുത്തൽ; "
     "വിശദാംശങ്ങൾ: [[" + PROJECT_PAGE + "]]"
