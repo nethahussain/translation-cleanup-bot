@@ -1,0 +1,18 @@
+{
+ "_comment": "Batch 6 as actually run (2026-09, the first run after AksharaBot was approved). Copy this file for the next batch: bump name/page/range/count and point work= at a fresh directory. Batch 7 starts at ക്രമസംഖ്യ 1298 of data/cx_full_list.xlsx.",
+ "name": "ആറാം ബാച്ച്",
+ "base": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം",
+ "page": "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം/ആറാം ബാച്ച്",
+ "work": "batches/batch6",
+ "count": 100,
+ "range": "1198–1297",
+ "mt_range": "94.5%–94.8%",
+ "model": "Claude Fable 5, Claude Opus 5",
+ "date_ml": "2026 സെപ്റ്റംബർ",
+ "rows_per_part": 250,
+ "facts_per_part": 300,
+ "stage_label": "2f. ആറാം ബാച്ച് (AksharaBot)",
+ "stage_anchor": "| 3. സമൂഹപരിശോധന ||",
+ "subpage_anchor": "* [[/ആദ്യ 200 ലേഖനങ്ങൾ|ആദ്യ 200 ലേഖനങ്ങളുടെ പട്ടിക]]",
+ "_model_note": "Fable 5 hit its usage limit part-way through the run; the remaining articles were processed with Opus 5. Both are disclosed on the results page."
+}

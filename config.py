@@ -39,9 +39,9 @@ USER_AGENT = (
 WIKI_USERNAME = os.environ.get("WIKI_USERNAME", "")
 WIKI_PASSWORD = os.environ.get("WIKI_PASSWORD", "")
 
-PROJECT_PAGE = "ഉപയോക്താവ്:Netha Hussain/പരിഭാഷ ശുദ്ധീകരണം"
+PROJECT_PAGE = "വിക്കിപീഡിയ:പരിഭാഷ ശുദ്ധീകരണം"
 EDIT_SUMMARY = (
-    "പരിഭാഷാ ശുദ്ധീകരണ പദ്ധതി — AI-സഹായത്തോടെ ഭാഷ മെച്ചപ്പെടുത്തൽ; "
+    "പരിഭാഷാ ശുദ്ധീകരണം — നിർമ്മിതബുദ്ധി (AI) സഹായത്തോടെ ഭാഷാതിരുത്തൽ; "
     "വിശദാംശങ്ങൾ: [[" + PROJECT_PAGE + "]]"
 )
 
