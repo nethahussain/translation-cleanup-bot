@@ -37,6 +37,7 @@ from pathlib import Path
 
 import checks
 import config
+import infobox
 import llm
 import prompts
 import wiki
@@ -254,12 +255,16 @@ def process_one(title, work):
 
         rec["model"] = (config.CLI_MODEL if config.ENGINE == "cli"
                         else config.API_MODEL)
+        # Infoboxes are never edited: the model gets placeholders instead and
+        # the original wikitext is spliced back in (see infobox.py).
+        frozen_old, boxes = infobox.freeze(old)
+        rec["infoboxes"] = len(boxes)
         raw = llm.complete(prompts.CLEANUP_SYSTEM,
-                           prompts.cleanup_user(title, old, en_source))
+                           prompts.cleanup_user(title, frozen_old, en_source))
         if prompts.NO_CHANGES_MARKER in raw:
             rec["status"] = "no-changes"
             return rec
-        new = llm.strip_fences(raw)
+        new = infobox.thaw(llm.strip_fences(raw), boxes)
         if new.strip() == old.strip():
             rec["status"] = "no-changes"
             return rec
@@ -291,7 +296,7 @@ def process_one(title, work):
     except llm.Refusal:
         rec["status"] = "llm-refused"
         return rec
-    except (llm.LLMError, wiki.WikiError) as exc:
+    except (llm.LLMError, wiki.WikiError, infobox.FrozenMismatch) as exc:
         rec["status"] = "error"
         rec["error"] = str(exc)[:400]
         return rec

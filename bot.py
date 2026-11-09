@@ -28,6 +28,7 @@ import time
 
 import checks
 import config
+import infobox
 import llm
 import prompts
 import wiki
@@ -113,9 +114,16 @@ def process_article(title: str, mode: str, username: str, report: list[str]) -> 
 
     en_source = wiki.get_en_source(title)
 
+    # Infoboxes are never edited: cut them out before the model sees the text,
+    # splice the originals back in afterwards (see infobox.py).
+    frozen_old, boxes = infobox.freeze(old)
+    if boxes:
+        log(f"  {len(boxes)} infobox(es) frozen")
+
     # Pass 1 — cleanup
     log("  cleanup pass…")
-    raw = llm.complete(prompts.CLEANUP_SYSTEM, prompts.cleanup_user(title, old, en_source))
+    raw = llm.complete(prompts.CLEANUP_SYSTEM,
+                       prompts.cleanup_user(title, frozen_old, en_source))
     time.sleep(config.SLEEP_BETWEEN_LLM_CALLS)
 
     if prompts.NO_CHANGES_MARKER in raw:
@@ -124,7 +132,7 @@ def process_article(title: str, mode: str, username: str, report: list[str]) -> 
         report.append(f"* [[{title}]] — no changes needed")
         return record
 
-    new = llm.strip_fences(raw)
+    new = infobox.thaw(llm.strip_fences(raw), boxes)
     if new.strip() == old.strip():
         record["status"] = "no-changes"
         log("  OK — output identical to input")
@@ -235,7 +243,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             record = {"title": title, "status": "llm-refused"}
             log("  SKIP (model declined; logged)")
             report.append(f"* [[{title}]] — skipped, model declined")
-        except (llm.LLMError, wiki.WikiError) as exc:
+        except (llm.LLMError, wiki.WikiError, infobox.FrozenMismatch) as exc:
             record = {"title": title, "status": "error"}
             log(f"  ERROR: {exc}")
             report.append(f"* [[{title}]] — error: {exc}")

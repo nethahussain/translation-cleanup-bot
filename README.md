@@ -15,18 +15,26 @@ For every article, the bot:
 
 1. **Fetches** the Malayalam wikitext and (if it exists) the English source
    article, as a meaning reference.
-2. **Cleanup pass** — Claude (Fable 5) corrects grammar, machine-translation
+2. **Freezes infoboxes** ([infobox.py](infobox.py)) — every infobox-type
+   template (`Infobox …`, `വിവരപ്പെട്ടി …`, `Taxobox`, `Navbox` …) is cut out
+   and replaced with a `<frozen-infobox id="N"/>` tag before the model sees
+   the text, and spliced back byte for byte afterwards. The bot never edits
+   infoboxes: their parameters are data rendered by the template, not
+   sentences, so a "grammar fix" like കേരളത്തിലെ → കേരളം breaks the rendered
+   caption. If the model drops or duplicates a tag, the edit is discarded.
+3. **Cleanup pass** — Claude (Fable 5) corrects grammar, machine-translation
    phrasing, untranslated fragments and inconsistent transliteration, under
    strict language-only instructions ([prompts.py](prompts.py)).
-3. **Structural checks** ([checks.py](checks.py)) — deterministic code (not AI)
-   verifies that link targets, template names, `<ref>` counts, external URLs
-   and **every number** are byte-identical, and that the length changed only
-   within a sane window. Any violation blocks the edit in auto mode.
-4. **Verification pass** — a second, independent AI call compares old vs. new
+4. **Structural checks** ([checks.py](checks.py)) — deterministic code (not AI)
+   verifies that link targets, template names, `<ref>` counts, external URLs,
+   **every number** and every infobox are byte-identical, and that the length
+   changed only within a sane window. Any violation blocks the edit in auto
+   mode.
+5. **Verification pass** — a second, independent AI call compares old vs. new
    and must confirm no meaning changed and no information was lost or added.
    It also reports factual problems in the article itself (outdated info etc.)
    for **human** editors — the bot never fixes those.
-5. **Saves** (only in interactive/auto mode) with a clear edit summary,
+6. **Saves** (only in interactive/auto mode) with a clear edit summary,
    conflict detection, `{{bots}}`/`{{nobots}}` respect, `maxlag=5`, and a rate
    limit of at most 4 edits/minute. Every saved edit is logged locally, and
    `python bot.py difflist` produces the wikitext diff table for the public
@@ -175,6 +183,16 @@ using it for any model-written text that reaches a page.
 fine" and the redirect gets counted as a reviewed article. Both `bot.py` and
 `batchrun.py` detect and skip them (batch 3: 107 of 500 were redirects).
 
+**Infobox parameters are not prose.** In batch 6 the model changed
+`|jurisdiction = കേരളത്തിലെ` to `കേരളം` in `{{Infobox government cabinet}}` on
+[ഒന്നാം സി. അച്യുതമേനോൻ മന്ത്രിസഭ](https://ml.wikipedia.org/w/index.php?diff=4681544&oldid=4069706):
+grammatically defensible as a standalone word, but the template builds
+"കേരളത്തിലെ 5-ആം മന്ത്രിസഭ" from it, so the caption broke. The template-name
+check could not catch it because the template name was unchanged. Since then
+infoboxes are frozen out of the model's input entirely (`infobox.py`) and
+`checks.compare` additionally rejects any edit whose infoboxes are not
+byte-identical.
+
 ## Data
 
 [data/cx_full_list.xlsx](data/cx_full_list.xlsx) — the complete worklist:
@@ -191,6 +209,7 @@ version lives at
 |---|---|
 | AI changes facts / hallucinates | Language-only prompt **+** digit/link/template/ref checks in code **+** independent second AI verification |
 | Broken wiki markup | Structural feature comparison; any change to structure blocks the edit |
+| "Grammar fix" inside an infobox breaks the rendered template | Infoboxes are removed from the model's input and restored byte for byte; a byte-identical check backs it up |
 | Community objection | Dry-run by default; `--auto` hard-refuses to run without explicit acknowledgement of bot approval; `{{nobots}}` respected; every edit trivially revertible |
 | Runaway editing | ≤ 4 edits/minute, `maxlag=5`, article-size cap |
 | Model refusal / API failure | Article is skipped and logged, never half-edited |

@@ -5,6 +5,7 @@ mechanically, so a bad model output can never reach the wiki:
 
 - internal link targets unchanged
 - template names unchanged
+- infoboxes byte-identical (the bot never edits them; see infobox.py)
 - <ref> tag count unchanged
 - category and file links unchanged
 - external URLs unchanged
@@ -20,6 +21,7 @@ import re
 from collections import Counter
 
 import config
+import infobox
 
 
 def _features(text: str) -> dict:
@@ -65,6 +67,19 @@ def compare(old: str, new: str) -> list[str]:
     old_f, new_f = _features(old), _features(new)
     for name in old_f:
         violations.extend(_diff_counters(name, old_f[name], new_f[name]))
+
+    # Infoboxes must be byte-identical: their parameters are data rendered by
+    # the template, not sentences, so even a "grammar fix" there is wrong.
+    old_boxes, new_boxes = infobox.find(old), infobox.find(new)
+    if len(old_boxes) != len(new_boxes):
+        violations.append(
+            f"infoboxes: {len(old_boxes)} before, {len(new_boxes)} after"
+        )
+    else:
+        for ob, nb in zip(old_boxes, new_boxes):
+            if ob != nb:
+                name = ob[2:].split("|", 1)[0].strip().splitlines()[0]
+                violations.append(f"infobox {{{{{name}}}}} was changed")
 
     return violations
 

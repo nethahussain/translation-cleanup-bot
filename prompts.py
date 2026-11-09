@@ -2,7 +2,8 @@
 
 The guardrails here mirror the commitments on the project page
 ([[ഉപയോക്താവ്:Netha Hussain/പരിഭാഷ ശുദ്ധീകരണം]]): language only — no facts,
-no numbers, no references, no structure changes.
+no numbers, no references, no structure changes, and no infobox edits at all
+(infoboxes are cut out before the model sees the text; see infobox.py).
 """
 
 NO_CHANGES_MARKER = "<<<NO_CHANGES_NEEDED>>>"
@@ -36,6 +37,9 @@ STRICT RULES — the edit is rejected automatically if you break them:
    order instead of English word order.
 8. Keep the same paragraph and section structure; do not merge or split
    sections.
+9. Infoboxes have been removed from the text you see and replaced with tags
+   of the form <frozen-infobox id="1"/>. Return every such tag exactly as it
+   is, in the same place. Never invent, drop, duplicate or edit one.
 
 OUTPUT FORMAT:
 - If changes are needed, return ONLY the complete corrected wikitext of the
