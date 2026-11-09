@@ -109,4 +109,13 @@ def thaw(text: str, boxes: list[str]) -> str:
             f"model returned infobox placeholders {found}, expected {expected} "
             "— edit discarded"
         )
-    return PLACEHOLDER_RE.sub(lambda m: boxes[int(m.group(1)) - 1], text)
+    text = PLACEHOLDER_RE.sub(lambda m: boxes[int(m.group(1)) - 1], text)
+    # Batch 31: the model once echoed the marker a second time as a template,
+    # {{frozen-infobox id="1"}}, above the real tag. Any marker text left after
+    # substitution means the model invented or mangled one — refuse the edit.
+    if "frozen-infobox" in text:
+        raise FrozenMismatch(
+            "model output still mentions frozen-infobox after restoring the "
+            "infoboxes (an invented or mangled marker) — edit discarded"
+        )
+    return text
